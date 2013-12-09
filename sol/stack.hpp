@@ -26,6 +26,7 @@
 #include "tuple.hpp"
 #include <utility>
 #include <type_traits>
+#include <array>
 
 namespace sol {
 template<typename T, typename R = void>
@@ -143,13 +144,32 @@ inline void push(lua_State* L, lua_CFunction func) {
     lua_pushcfunction(L, func);
 }
 
+inline void push(lua_State* L, lua_CFunction func, int n) {
+    lua_pushcclosure(L, func, n);
+}
+
+inline void push(lua_State* L, void* userdata) {
+    lua_pushlightuserdata(L, userdata);
+}
+
 template<size_t N>
 inline void push(lua_State* L, const char (&str)[N]) {
     lua_pushlstring(L, str, N - 1);
 }
 
+inline void push(lua_State* L, const char* str) {
+    lua_pushlstring(L, str, std::char_traits<char>::length(str));
+}
+
 inline void push(lua_State* L, const std::string& str) {
     lua_pushlstring(L, str.c_str(), str.size());
+}
+
+template<typename T, size_t N>
+inline void push(lua_State* L, const std::array<T, N>& data) {
+    for (auto&& i : data) {
+        push(L, i);
+    }
 }
 
 namespace detail {
@@ -161,15 +181,15 @@ inline void push(lua_State* L, indices<I...>, const T& tuplen) {
 
 template<typename F, typename... Vs>
 auto ltr_pop(lua_State*, F&& f, types<>, Vs&&... vs) -> decltype(f(std::forward<Vs>(vs)...)) {
-	return f(std::forward<Vs>(vs)...);
+    return f(std::forward<Vs>(vs)...);
 }
 template<typename F, typename Head, typename... Vs>
 auto ltr_pop(lua_State* L, F&& f, types<Head>, Vs&&... vs) -> decltype(ltr_pop(L, std::forward<F>(f), types<>(), std::forward<Vs>(vs)..., pop<Head>(L))) {
-	return ltr_pop(L, std::forward<F>(f), types<>(), std::forward<Vs>(vs)..., pop<Head>(L));
+    return ltr_pop(L, std::forward<F>(f), types<>(), std::forward<Vs>(vs)..., pop<Head>(L));
 }
 template<typename F, typename Head, typename... Tail, typename... Vs>
 auto ltr_pop(lua_State* L, F&& f, types<Head, Tail...>, Vs&&... vs) -> decltype(ltr_pop(L, std::forward<F>(f), types<Tail...>(), std::forward<Vs>(vs)..., pop<Head>(L))) {
-	return ltr_pop(L, std::forward<F>(f), types<Tail...>(), std::forward<Vs>(vs)..., pop<Head>(L));
+    return ltr_pop(L, std::forward<F>(f), types<Tail...>(), std::forward<Vs>(vs)..., pop<Head>(L));
 }
 } // detail
 

@@ -38,6 +38,7 @@ struct function_traits<R(T::*)(Args...)> {
     typedef types<Args...> args_type;
     typedef R(T::* function_pointer_type)(Args...);
     typedef typename std::remove_pointer<function_pointer_type>::type function_type;
+    typedef R(* free_function_pointer_type)(Args...);
     typedef R return_type;
     template<std::size_t i>
     using arg = typename std::tuple_element<i, arg_tuple_type>::type;
@@ -49,8 +50,9 @@ struct function_traits<R(T::*)(Args...) const> {
     static const bool is_member_function = true;
     typedef std::tuple<Args...> arg_tuple_type;
     typedef types<Args...> args_type;
-    typedef R(T::* function_type)(Args...);
     typedef R(T::* function_pointer_type)(Args...);
+    typedef typename std::remove_pointer<function_pointer_type>::type function_type;
+    typedef R(* free_function_pointer_type)(Args...);
     typedef R return_type;
     template<std::size_t i>
     using arg = typename std::tuple_element<i, arg_tuple_type>::type;
@@ -64,6 +66,7 @@ struct function_traits<R(Args...)> {
     typedef types<Args...> args_type;
     typedef R(function_type)(Args...);
     typedef R(*function_pointer_type)(Args...);
+    typedef R(* free_function_pointer_type)(Args...);
     typedef R return_type;
     template<std::size_t i>
     using arg = typename std::tuple_element<i, arg_tuple_type>::type;
@@ -77,6 +80,7 @@ struct function_traits<R(*)(Args...)> {
     typedef types<Args...> args_type;
     typedef R(function_type)(Args...);
     typedef R(*function_pointer_type)(Args...);
+    typedef R(* free_function_pointer_type)(Args...);
     typedef R return_type;
     template<std::size_t i>
     using arg = typename std::tuple_element<i, arg_tuple_type>::type;
@@ -90,22 +94,22 @@ inline auto call(Function&& f, const Tuple& t, indices<Indices...>) -> decltype(
 }
 } // detail
 
-template <typename... Ret>
+template<typename... Ret>
 struct lua_return_type {
     typedef std::tuple<Ret...> type;
 };
 
-template <typename Ret>
+template<typename Ret>
 struct lua_return_type<Ret> {
     typedef Ret type;
 };
 
-template <>
+template<>
 struct lua_return_type<> {
     typedef void type;
 };
 
-template <>
+template<>
 struct lua_return_type<void> {
     typedef void type;
 };

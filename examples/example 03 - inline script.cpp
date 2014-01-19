@@ -1,7 +1,5 @@
-// shows how to load basic data to a struct
 #include <string>
 #include <cassert>
-// include sol header
 #include <sol.hpp>
 
 

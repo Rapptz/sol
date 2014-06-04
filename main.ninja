@@ -4,12 +4,20 @@ ninja_required_version = 1.3
 builddir = bin
 objdir = obj
 cxx = g++
+cxxflagsd = -std=c++11 -pedantic -pedantic-errors -g -Wextra -Wall -O0 -DEBUG
 cxxflags = -std=c++11 -pedantic -pedantic-errors -Wextra -Wall -O2 -DNDEBUG
 incflags = -I"." -I"./include" -I"." -I"/usr/include/lua5.2" -I"./lua-5.2.2/src/" -I"./Catch/include/"
-linkflags = -static -L"./lib" -llua5.2
+linkflags = -static -L"./lib" -llua5.2 -ldl
+linkflags_win = -static -L"./lib" -llua5.2
 
 rule compile
     command = $cxx -MMD -MF $out.d $cxxflags -c $in -o $out $incflags
+    deps = gcc
+    depfile = $out.d
+    description = Compiling $in
+
+rule compiled
+    command = $cxx -MMD -MF $out.d $cxxflagsd -c $in -o $out $incflags
     deps = gcc
     depfile = $out.d
     description = Compiling $in
@@ -18,10 +26,23 @@ rule link
     command = $cxx $in -o $out $linkflags
     description = Creating $out
 
-build $objdir/main.o: compile main.cpp
+rule link_win
+    command = $cxx $in -o $out $linkflags_win
+    description = Creating $out
 
-build $builddir/tests: link $objdir/main.o
+build $objdir/release/main.o: compile main.cpp
+build $objdir/debug/main.o: compiled main.cpp
+build $objdir/win/release/main.o: compile main.cpp
+build $objdir/win/debug/main.o: compiled main.cpp
 
-build install: phony $builddir/tests
+build $builddir/release/main: link $objdir/main.o
+build $builddir/debug/main: link $objdir/debug/main.o
+build $builddir/win/release/main: link_win $objdir/win/main.o
+build $builddir/win/debug/main: link_win $objdir/win/debug/main.o
+
+build install: phony $builddir/release/main
+build install_debug: phony $builddir/debug/main
+build install_win: phony $builddir/win/release/main
+build install_win_debug: phony $builddir/win/debug/main
 
 default install

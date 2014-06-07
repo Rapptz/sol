@@ -4,7 +4,7 @@ ninja_required_version = 1.3
 builddir = bin
 objdir = obj
 cxx = g++
-cxxflagsd = -std=c++11 -pedantic -pedantic-errors -g -Wextra -Wall -O0 -DEBUG
+cxxflagsd = -std=c++11 -pedantic -pedantic-errors -g -Wextra -Wall -O0 -DDEBUG
 cxxflags = -std=c++11 -pedantic -pedantic-errors -Wextra -Wall -O2 -DNDEBUG
 incflags = -I"." -I"./include" -I"." -I"/usr/include/lua5.2" -I"./lua-5.2.2/src/" -I"./Catch/include/"
 linkflags = -static -L"./lib" -llua5.2 -ldl

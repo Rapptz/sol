@@ -30,7 +30,7 @@ def replace_extension(f, e):
     return root + e
 
 # Default install dir
-install_dir = os.path.join('/usr', 'include') if 'linux' in sys.platform else 'include'
+install_dir = os.path.join('/usr/local', 'include') if 'linux' in sys.platform else 'include'
 
 # command line stuff
 parser = argparse.ArgumentParser()
@@ -39,7 +39,7 @@ parser.add_argument('--cxx', metavar='<compiler>', help='compiler name to use (d
 parser.add_argument('--ci', action='store_true', help=argparse.SUPPRESS)
 parser.add_argument('--testing', action='store_true', help=argparse.SUPPRESS)
 parser.add_argument('--lua-dir', metavar='<dir>', help='directory lua is in with include and lib subdirectories')
-parser.add_argument('--install-dir', metavar='<dir>', help='directory to install the headers to', default=install_dir);
+parser.add_argument('--install-dir', metavar='<dir>', help='directory to install the headers to', default=install_dir)
 parser.epilog = """In order to install sol, administrative privileges might be required.
 Note that installation is done through the 'ninja install' command. To uninstall, the
 command used is 'ninja uninstall'. The default installation directory for this

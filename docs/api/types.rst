@@ -8,6 +8,10 @@ Lua Types
 In order to interact seamlessly with the Lua C API, Sol specifies some types and enums that interop with the C and
 C++ API.
 
+This file can be included through::
+
+    #include <sol/types.hpp>
+
 .. namespace:: sol
 
 .. class:: nil_t

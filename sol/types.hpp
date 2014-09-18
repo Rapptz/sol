@@ -27,13 +27,21 @@
 #include "traits.hpp"
 
 namespace sol {
-struct nil_t {};
-const nil_t nil {};
-struct void_type {};
-const void_type Void {};
+struct nil_t {
+    nil_t() {}
+};
+
+const nil_t nil{};
+
+struct void_type {
+    void_type() {}
+};
+
+const void_type Void{};
 
 template<typename... T>
 struct function_sig_t {};
+
 using function_t = function_sig_t<>;
 
 struct upvalue_t {
@@ -85,7 +93,7 @@ inline void type_assert(lua_State* L, int index, type expected) {
     }
 }
 
-inline std::string type_name(lua_State*L, type t) {
+inline std::string type_name(lua_State* L, type t) {
     return lua_typename(L, static_cast<int>(t));
 }
 

@@ -871,3 +871,27 @@ TEST_CASE("regressions/one", "issue number 48") {
     auto* ptr = &my_var;
     REQUIRE(ptr->boop == 1);
 }
+
+namespace
+{
+
+class ClassWithTwoInts
+{
+  public:
+    ClassWithTwoInts( int a, int b )
+      : a( a )
+      , b( b )
+    {
+    }
+
+    const int a;
+    const int b;
+};
+
+}
+
+TEST_CASE("user data creation", "class with two int parameters") {
+    sol::state lua;
+    lua.new_userdata< ClassWithTwoInts, int, int >("class_with_two_ints" );
+}
+

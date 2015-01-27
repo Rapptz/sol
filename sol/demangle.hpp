@@ -25,6 +25,7 @@
 #include <string>
 #include <array>
 #include <cstdlib>
+#include <cassert>
 
 #if defined(__GNUC__) || defined(__clang__)
 #include <cxxabi.h>
@@ -41,6 +42,7 @@ inline std::string get_type_name(const std::type_info& id) {
 inline std::string get_type_name(const std::type_info& id) {
     int status;
     char* unmangled = abi::__cxa_demangle(id.name(), 0, 0, &status);
+    assert(0==status);
     std::string realname = unmangled;
     std::free(unmangled);
     return realname;

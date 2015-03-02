@@ -29,7 +29,8 @@
 namespace sol {
 namespace detail {
 inline int atpanic(lua_State* L) {
-    std::string err = lua_tostring(L, -1);
+    const char* message = lua_tostring(L, -1);
+    std::string err = message ? message : "An unexpected error occured and forced the lua state to call atpanic";
     throw error(err);
 }
 } // detail
@@ -137,8 +138,8 @@ public:
 
     template<typename... Args, typename... Keys>
     auto get(Keys&&... keys) const
-    -> decltype(global.get(types<Args...>(), std::forward<Keys>(keys)...)) {
-       return global.get(types<Args...>(), std::forward<Keys>(keys)...);
+    -> decltype(global.get<Args...>(std::forward<Keys>(keys)...)) {
+       return global.get<Args...>(std::forward<Keys>(keys)...);
     }
 
     template<typename T, typename U>
@@ -148,26 +149,46 @@ public:
     }
 
     template<typename T>
-    state& set_userdata(userdata<T>& user) {
-        return set_userdata(user.name(), user);
+    SOL_DEPRECATED table& set_userdata(usertype<T>& user) {
+        return set_usertype(user);
     }
 
     template<typename Key, typename T>
-    state& set_userdata(Key&& key, userdata<T>& user) {
-        global.set_userdata(std::forward<Key>(key), user);
+    SOL_DEPRECATED table& set_userdata(Key&& key, usertype<T>& user) {
+        return set_usertype(std::forward<Key>(key), user);
+    }
+
+    template<typename Class, typename... CTor, typename... Args>
+    SOL_DEPRECATED state& new_userdata(const std::string& name, Args&&... args) {
+        return new_usertype<Class>(name, std::forward<Args>(args)...);
+    }
+
+    template<typename Class, typename... CArgs, typename... Args>
+    SOL_DEPRECATED state& new_userdata(const std::string& name, constructors<CArgs...> ctor, Args&&... args) {
+        return new_usertype(name, std::move(ctor), std::forward<Args>(args)...);
+    }
+
+    template<typename T>
+    state& set_usertype(usertype<T>& user) {
+        return set_usertype(usertype_traits<T>::name, user);
+    }
+
+    template<typename Key, typename T>
+    state& set_usertype(Key&& key, usertype<T>& user) {
+        global.set_usertype(std::forward<Key>(key), user);
         return *this;
     }
 
     template<typename Class, typename... CTor, typename... Args>
-    state& new_userdata(const std::string& name, Args&&... args) {
+    state& new_usertype(const std::string& name, Args&&... args) {
         constructors<types<CTor...>> ctor{};
-        return new_userdata<Class>(name, ctor, std::forward<Args>(args)...);
+        return new_usertype<Class>(name, ctor, std::forward<Args>(args)...);
     }
 
     template<typename Class, typename... CArgs, typename... Args>
-    state& new_userdata(const std::string& name, constructors<CArgs...> ctor, Args&&... args) {
-        userdata<Class> udata(name, ctor, std::forward<Args>(args)...);
-        global.set_userdata(udata);
+    state& new_usertype(const std::string& name, constructors<CArgs...> ctor, Args&&... args) {
+        usertype<Class> utype(ctor, std::forward<Args>(args)...);
+        set_usertype(name, utype);
         return *this;
     }
 

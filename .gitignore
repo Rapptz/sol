@@ -30,3 +30,7 @@ build.ninja
 main.ninja
 *.user
 *.3cb9f6a
+luajit-2.0.3/
+.dropbox*
+desktop.ini
+lua-5.3.0/

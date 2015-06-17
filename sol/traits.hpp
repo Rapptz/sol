@@ -123,6 +123,13 @@ struct return_type<> : types<>{
 };
 
 namespace detail {
+struct has_to_lua_impl {
+    template<typename T, typename U = decltype(to_lua(nullptr, std::declval<T>()))>
+    static std::is_integral<U> test(int);
+
+    template<typename...>
+    static std::false_type test(...);
+};
 
 template<typename T, bool isclass = std::is_class<Unqualified<T>>::value>
 struct is_function_impl : std::is_function<typename std::remove_pointer<T>::type> {};
@@ -162,6 +169,9 @@ struct has_deducible_signature : detail::check_deducible_signature<F>::type { };
 
 template<typename T>
 using has_deducible_signature_t = typename has_deducible_signature<T>::type;
+
+template<typename T>
+struct has_to_lua : decltype(detail::has_to_lua_impl::test<T>(0)) {};
 
 template<typename T>
 struct Function : Bool<detail::is_function_impl<T>::value> {};

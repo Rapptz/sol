@@ -344,14 +344,19 @@ struct pusher {
        return ref.push();
     }
 
-    template<typename U = Unqualified<T>, EnableIf<Not<has_begin_end<U>>, Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
-    static int push(lua_State* L, T& t) {
-        return detail::push_userdata<U>(L, usertype_traits<T>::metatable, t);
+    template<typename Arg, typename U = Unqualified<T>, EnableIf<Not<has_begin_end<U>>, Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
+    static int push(lua_State* L, Arg&& a) {
+        return push_to_lua(has_to_lua<T>(), L, std::forward<Arg>(arg));
     }
 
-    template<typename U = Unqualified<T>, EnableIf<Not<has_begin_end<U>>, Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
-    static int push(lua_State* L, T&& t) {
-        return detail::push_userdata<U>(L, usertype_traits<T>::metatable, std::move(t));
+    template<typename Arg, typename U = Unqualified<T>, EnableIf<Not<has_begin_end<U>>, Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
+    static int push_to_lua(std::true_type, lua_State* L, Arg&& a) {
+        return to_lua(L, std::forward<Arg>(a));
+    }
+
+    template<typename Arg, typename U = Unqualified<T>, EnableIf<Not<has_begin_end<U>>, Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
+    static int push_to_lua(lua_State* L, Arg&& arg) {
+        return detail::push_userdata<U>(L, usertype_traits<T>::metatable, std::forward<Arg>(arg)));
     }
 };
 

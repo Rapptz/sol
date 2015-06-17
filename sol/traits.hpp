@@ -131,6 +131,22 @@ struct has_to_lua_impl {
     static std::false_type test(...);
 };
 
+struct has_from_lua_impl {
+    template<typename T, typename U = decltype(from_lua(types<T>(), nullptr, -1))>
+    static std::is_convertible<U, T> test(int);
+
+    template<typename...>
+    static std::false_type test(...);
+};
+
+struct has_check_lua_impl {
+    template<typename T, typename U = decltype(check_lua(types<T>(), nullptr, -1))>
+    static std::is_convertible<U, bool> test(int);
+
+    template<typename...>
+    static std::false_type test(...);
+};
+
 template<typename T, bool isclass = std::is_class<Unqualified<T>>::value>
 struct is_function_impl : std::is_function<typename std::remove_pointer<T>::type> {};
 
@@ -172,6 +188,12 @@ using has_deducible_signature_t = typename has_deducible_signature<T>::type;
 
 template<typename T>
 struct has_to_lua : decltype(detail::has_to_lua_impl::test<T>(0)) {};
+
+template<typename T>
+struct has_from_lua : decltype(detail::has_from_lua_impl::test<T>(0)) {};
+
+template<typename T>
+struct has_check_lua : decltype(detail::has_check_lua_impl::test<T>(0)) {};
 
 template<typename T>
 struct Function : Bool<detail::is_function_impl<T>::value> {};

@@ -197,6 +197,24 @@ struct giver {
 
 };
 
+struct arfbarf {
+    int a;
+};
+
+int to_lua( lua_State* L, arfbarf a ) {
+    sol::stack::push( L, a.a );
+    return 1;
+}
+
+arfbarf from_lua( sol::types<arfbarf>, lua_State* L, int index ) {
+    int value = sol::stack::get<int>( L );
+    return arfbarf{ value };
+}
+
+bool check_lua( sol::types<arfbarf>, lua_State* L, int index ) {
+    return sol::stack::check<int>(L, index);
+}
+
 TEST_CASE("simple/set_global", "Check if the set_global works properly.") {
     sol::state lua;
 
@@ -954,4 +972,19 @@ TEST_CASE("references/get-set", "properly get and set with std::ref semantics. N
     REQUIRE(var.boop != my_var.boop);
     // Reference should point back to the same type.
     REQUIRE(rvar.boop == ref_var.boop);
+}
+
+TEST_CASE("interop/to_from_lua", "check if presence of to and from lua are properly detected") {
+    sol::state lua;
+    lua.open_libraries( sol::lib::base );
+
+    lua.set_function( "lol", []() -> arfbarf {
+        return arfbarf{ 0x1337 };
+    } );
+    lua.set_function( "rofl", []( arfbarf x ) {
+        (void)x.a;
+    } );
+    REQUIRE_NOTHROW(lua.script( "x = lol()\n"
+        "rofl(x)\n"
+        "assert(x == 0x1337)" ));
 }

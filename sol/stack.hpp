@@ -156,6 +156,20 @@ struct checker {
     }
 };
 
+template <typename T, type expected>
+struct checker<T, expected, typename std::enable_if<has_check_lua<T>::value>::type> {
+    template <typename Handler>
+    static bool check (lua_State* L, int index, const Handler& handler) {
+        bool success = check_lua(types<T>(), L, index);
+        if (!success) {
+            // expected type, actual type
+            const type indextype = type_of(L, index);
+            handler(L, index, expected, indextype);
+        }
+        return success;
+    }
+};
+
 template <typename T, typename Handler>
 bool check(lua_State* L, int index, Handler&& handler) {
     typedef Unqualified<T> Tu;
@@ -193,7 +207,17 @@ struct getter {
     }
 
     template<typename U = T, EnableIf<Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
-    static U& get(lua_State* L, int index = -1) {
+    static auto get(lua_State* L, int index = -1) -> decltype(get_from_lua<U>(has_from_lua<U>(), L, index)) {
+        return get_from_lua<U>(has_from_lua<U>(), L, index);
+    }
+
+    template <typename U>
+    static auto get_from_lua(std::true_type, lua_State* L, int index = -1) -> decltype(from_lua(types<T>(), L, index)) {
+        return from_lua(types<U>(), L, index);
+    }
+
+    template <typename U>
+    static T& get_from_lua(std::false_type, lua_State* L, int index = -1) {
         void* udata = lua_touserdata(L, index);
         T* obj = static_cast<T*>(udata);
         return *obj;
@@ -345,18 +369,18 @@ struct pusher {
     }
 
     template<typename Arg, typename U = Unqualified<T>, EnableIf<Not<has_begin_end<U>>, Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
-    static int push(lua_State* L, Arg&& a) {
+    static int push(lua_State* L, Arg&& arg) {
         return push_to_lua(has_to_lua<T>(), L, std::forward<Arg>(arg));
     }
 
     template<typename Arg, typename U = Unqualified<T>, EnableIf<Not<has_begin_end<U>>, Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
-    static int push_to_lua(std::true_type, lua_State* L, Arg&& a) {
-        return to_lua(L, std::forward<Arg>(a));
+    static int push_to_lua(std::true_type, lua_State* L, Arg&& arg) {
+        return to_lua(L, std::forward<Arg>(arg));
     }
 
     template<typename Arg, typename U = Unqualified<T>, EnableIf<Not<has_begin_end<U>>, Not<std::is_base_of<reference, U>>, Not<std::is_integral<U>>, Not<std::is_floating_point<U>>> = 0>
-    static int push_to_lua(lua_State* L, Arg&& arg) {
-        return detail::push_userdata<U>(L, usertype_traits<T>::metatable, std::forward<Arg>(arg)));
+    static int push_to_lua(std::false_type, lua_State* L, Arg&& arg) {
+        return detail::push_userdata<U>(L, usertype_traits<T>::metatable, std::forward<Arg>(arg));
     }
 };
 

@@ -48,6 +48,7 @@ public:
 
     void push() const noexcept {
         lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+	return 1;
     }
 
     reference(reference&& o) noexcept {

@@ -46,7 +46,7 @@ public:
         luaL_unref(L, LUA_REGISTRYINDEX, ref);
     }
 
-    void push() const noexcept {
+    int push() const noexcept {
         lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
 	return 1;
     }

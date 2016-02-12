@@ -22,6 +22,7 @@
 #ifndef SOL_TYPES_HPP
 #define SOL_TYPES_HPP
 
+#define LUA_COMPAT_APIINTCASTS
 #include <lua.hpp>
 #include <string>
 #include "traits.hpp"
